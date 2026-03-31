@@ -76,30 +76,47 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker     = document.getElementById('bg-picker');
 const pfpCircle    = document.getElementById('user-initials');
 
-/* ── Total orders counter ──
-   FIX: threshold was 1.0 (needs 100% visible — almost never triggers).
-   Now 0.3. Also counter starts immediately if element is already in view.
-── */
+/* ── Total orders counter ── */
 let counterDone = false;
 let counterTarget = 0;
 
 function runCounter() {
-  if (counterDone) return;
+  if (counterDone || counterTarget === 0) return;
   counterDone = true;
   const display = document.getElementById('total-orders-display');
-  if (!display) return;
   let val = 0;
+  const step = Math.ceil(counterTarget / 50); // Speed up the animation for large numbers
   const tick = () => {
     if (val < counterTarget) {
-      val++;
-      display.innerText = val;
-      setTimeout(tick, 28);
+      val += step;
+      display.innerText = val > counterTarget ? counterTarget : val;
+      requestAnimationFrame(tick);
     } else {
       display.innerText = counterTarget;
     }
   };
   tick();
 }
+
+onValue(ref(db, 'users'), (snapshot) => {
+  const users = snapshot.val();
+  let newTotal = 0;
+  if (users) Object.values(users).forEach(u => newTotal += (u.orderCount || 0));
+  counterTarget = newTotal;
+
+  const display = document.getElementById('total-orders-display');
+  if (!display) return;
+
+  // Set the text immediately if the animation already finished or hasn't started
+  if (counterDone) {
+    display.innerText = counterTarget;
+  } else {
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) runCounter();
+    }, { threshold: 0.1 });
+    obs.observe(display);
+  }
+});
 
 onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
@@ -127,41 +144,37 @@ let unsubscribeUserData = null;
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-nav').style.display = 'none';
-    document.getElementById('user-nav').style.display  = 'block';
+    document.getElementById('user-nav').style.display = 'block';
 
-    if (unsubscribeUserData) { unsubscribeUserData(); unsubscribeUserData = null; }
-
-    unsubscribeUserData = onValue(ref(db, 'users/' + user.uid), (snapshot) => {
+    const userRef = ref(db, 'users/' + user.uid);
+    onValue(userRef, (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
 
-      if (data.orderCount === undefined) {
-        update(ref(db, 'users/' + user.uid), { orderCount: 0 });
-      }
-
-      document.getElementById('display-uid').innerText      = user.uid;
-      document.getElementById('edit-username').value        = data.username || '';
+      // Update individual UI elements
+      document.getElementById('display-uid').innerText = user.uid;
+      document.getElementById('edit-username').value = data.username || '';
       document.getElementById('user-order-count').innerText = data.orderCount || 0;
 
-      const initials = (data.username || '??')
-        .split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-      pfpCircle.innerText = initials;
+      // Handle PFP Initials
+      const name = data.username || '??';
+      const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+      pfpCircle.innerText = initials || '??';
 
+      // Handle Colors
       if (data.pfpColor) {
         pfpCircle.style.backgroundColor = data.pfpColor;
-        bgPicker.value                  = data.pfpColor;
-        colorTrigger.style.borderColor  = data.pfpColor;
+        bgPicker.value = data.pfpColor;
+        colorTrigger.style.borderColor = data.pfpColor;
       }
     });
 
   } else {
-    if (unsubscribeUserData) { unsubscribeUserData(); unsubscribeUserData = null; }
     document.getElementById('login-nav').style.display = 'block';
-    document.getElementById('user-nav').style.display  = 'none';
+    document.getElementById('user-nav').style.display = 'none';
     modal.style.display = 'none';
   }
 });
-
 /* ── Copy UID ── */
 document.getElementById('copy-id').onclick = () => {
   navigator.clipboard.writeText(document.getElementById('display-uid').innerText).then(() => {
