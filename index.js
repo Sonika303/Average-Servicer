@@ -20,7 +20,6 @@ requestAnimationFrame(function () {
 
 /* ── 2. Scroll reveal ────────────────────────────────────── */
 var revealTargets = document.querySelectorAll('.card, .pill');
-
 var io = new IntersectionObserver(function (entries) {
   entries.forEach(function (entry) {
     if (!entry.isIntersecting) return;
@@ -34,7 +33,7 @@ var io = new IntersectionObserver(function (entries) {
     el.classList.add('visible');
     io.unobserve(el);
   });
-}, { threshold: .1, rootMargin: '0px 0px -28px 0px' });
+}, { threshold: 0.1, rootMargin: '0px 0px -28px 0px' });
 
 revealTargets.forEach(function (el) { io.observe(el); });
 
@@ -62,9 +61,7 @@ document.querySelectorAll('.card:not(.soon-card)').forEach(function (card) {
 });
 
 /* ── 5. Block right-click context menu ──────────────────── */
-document.addEventListener('contextmenu', function (e) {
-  e.preventDefault();
-});
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
 /* ── 6. Firebase & Settings Logic ────────────────────────── */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -92,7 +89,7 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. GLOBAL TOTAL ORDERS
+// 1. GLOBAL TOTAL ORDERS (Fixed Logic)
 let hasAnimated = false; 
 onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
@@ -100,27 +97,36 @@ onValue(ref(db, 'users'), (snapshot) => {
   if (users) {
     Object.values(users).forEach(u => targetCount += (u.orderCount || 0));
   }
+  
   const totalDisplay = document.getElementById('total-orders-display');
-  const startCounter = () => {
-    if (hasAnimated || targetCount === 0) return;
+  if (!totalDisplay) return;
+
+  const runCounter = () => {
+    if (hasAnimated) {
+      totalDisplay.innerText = targetCount;
+      return;
+    }
     hasAnimated = true;
-    const duration = 3000;
+    const duration = 2500;
     const startTime = performance.now();
     const animate = (currentTime) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = progress * (2 - progress);
-      const currentValue = Math.floor(easedProgress * targetCount);
-      totalDisplay.innerText = currentValue;
+      const eased = progress * (2 - progress);
+      totalDisplay.innerText = Math.floor(eased * targetCount);
       if (progress < 1) requestAnimationFrame(animate);
       else totalDisplay.innerText = targetCount;
     };
     requestAnimationFrame(animate);
   };
+
+  // If already visible or no IntersectionObserver support, just run it
+  if (window.scrollY > 200) runCounter(); 
+  
   const observer = new IntersectionObserver((entries) => {
-    if(entries[0].isIntersecting) startCounter();
-  }, { threshold: 1.0 });
-  if (totalDisplay) observer.observe(totalDisplay);
+    if(entries[0].isIntersecting) runCounter();
+  }, { threshold: 0.5 });
+  observer.observe(totalDisplay);
 });
 
 // 2. AUTH & USER DATA
@@ -133,7 +139,6 @@ onAuthStateChanged(auth, (user) => {
     onValue(userRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // UI UPDATES
         document.getElementById('display-uid').innerText = user.uid;
         document.getElementById('edit-username').value = data.username || "";
         document.getElementById('user-order-count').innerText = data.orderCount || 0;
@@ -179,18 +184,14 @@ bgPicker.oninput = (e) => {
 document.getElementById('save-settings').onclick = async () => {
   const user = auth.currentUser;
   if (!user) return;
-  const newName = document.getElementById('edit-username').value;
-  const newColor = bgPicker.value;
   try {
     await update(ref(db, 'users/' + user.uid), {
-      username: newName,
-      pfpColor: newColor
+      username: document.getElementById('edit-username').value,
+      pfpColor: bgPicker.value
     });
     alert("Profile Updated!");
     modal.style.display = 'none';
-  } catch (error) {
-    console.error("Save failed:", error);
-  }
+  } catch (error) { console.error("Save failed:", error); }
 };
 
 // 6. LOGOUT LOGIC
@@ -201,9 +202,5 @@ document.getElementById('logout-btn').onclick = () => {
     off(ref(db, 'users/' + user.uid));
     off(ref(db, 'users'));
   }
-  signOut(auth).then(() => {
-    window.location.reload();
-  }).catch((err) => {
-    console.error("Logout Error:", err);
-  });
+  signOut(auth).then(() => { window.location.reload(); });
 };
