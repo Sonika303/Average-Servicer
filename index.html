@@ -15,10 +15,33 @@
   <!-- ───────────── NAV ───────────── -->
   <nav id="navbar">
     <span class="nav-logo">AVG. SERVICER</span>
-    <ul class="nav-links">
-      <li><a href="#services">Services</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
+   <ul class="nav-links">
+  <li><a href="#services">Services</a></li>
+  <li><a href="login.html" id="login-nav">Login</a></li>
+  <li id="user-nav" style="display:none;"><a href="javascript:void(0)" id="open-settings">Settings</a></li>
+</ul>
+
+<div id="settings-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="close-modal">&times;</span>
+      <h2>Settings</h2>
+    </div>
+    <div class="profile-section">
+      <div id="user-initials" class="whatsapp-pfp">??</div>
+      <div class="id-badge">MAIN ID: <span id="display-uid">--------</span></div>
+    </div>
+    <div class="edit-group">
+      <label>Display Name</label>
+      <input type="text" id="edit-username" placeholder="Enter Name">
+    </div>
+    <div class="edit-group">
+      <label>Background Color</label>
+      <input type="color" id="bg-picker" value="#fcfcfc">
+    </div>
+    <button id="save-settings" class="hero-cta">Save Changes</button>
+  </div>
+</div>
   </nav>
 
   <!-- ───────────── HERO ──────────── -->
