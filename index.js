@@ -53,9 +53,9 @@ document.querySelectorAll('.card:not(.soon-card)').forEach(function(card) {
 document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
 /* ── 6. Firebase ── */
-import { initializeApp }                    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update }   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { initializeApp }                         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut }  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getDatabase, ref, onValue, update }     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const app  = initializeApp({
   apiKey:            "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
@@ -76,56 +76,72 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker     = document.getElementById('bg-picker');
 const pfpCircle    = document.getElementById('user-initials');
 
-/* ── Total orders counter ── */
+/* ── Total orders counter ──
+   FIX: threshold was 1.0 (needs 100% visible — almost never triggers).
+   Now 0.3. Also counter starts immediately if element is already in view.
+── */
 let counterDone = false;
-let counterVal  = 0;
+let counterTarget = 0;
+
+function runCounter() {
+  if (counterDone) return;
+  counterDone = true;
+  const display = document.getElementById('total-orders-display');
+  if (!display) return;
+  let val = 0;
+  const tick = () => {
+    if (val < counterTarget) {
+      val++;
+      display.innerText = val;
+      setTimeout(tick, 28);
+    } else {
+      display.innerText = counterTarget;
+    }
+  };
+  tick();
+}
 
 onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
-  let total = 0;
-  if (users) Object.values(users).forEach(u => total += (u.orderCount || 0));
+  counterTarget = 0;
+  if (users) Object.values(users).forEach(u => counterTarget += (u.orderCount || 0));
 
   const display = document.getElementById('total-orders-display');
   if (!display) return;
 
-  new IntersectionObserver((entries, obs) => {
+  // Show raw number immediately (no animation flicker while counter hasn't run)
+  if (!counterDone) display.innerText = counterTarget;
+
+  // Use IntersectionObserver with low threshold so it fires reliably
+  const obs = new IntersectionObserver((entries, self) => {
     if (!entries[0].isIntersecting) return;
-    obs.disconnect();
-    if (counterDone) return;
-    counterDone = true;
-    const tick = () => {
-      if (counterVal < total) { counterVal++; display.innerText = counterVal; setTimeout(tick, 30); }
-      else display.innerText = total;
-    };
-    tick();
-  }, { threshold: 1.0 }).observe(display);
+    self.disconnect();
+    runCounter();
+  }, { threshold: 0.3 });
+  obs.observe(display);
 });
 
-/* ── Auth — KEY FIX: store unsubscribe fn, call it on logout ── */
-let unsubscribeUserData = null; // ← holds the onValue detach function
+/* ── Auth ── */
+let unsubscribeUserData = null;
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-nav').style.display = 'none';
     document.getElementById('user-nav').style.display  = 'block';
 
-    // ── Clean up any previous listener before attaching a new one ──
-    // This prevents stale listeners from firing after logout/re-login
     if (unsubscribeUserData) { unsubscribeUserData(); unsubscribeUserData = null; }
 
     unsubscribeUserData = onValue(ref(db, 'users/' + user.uid), (snapshot) => {
       const data = snapshot.val();
-      if (!data) return; // new user with no data yet — don't touch anything
+      if (!data) return;
 
-      // Only initialise orderCount if it has NEVER been set — never wipe existing fields
       if (data.orderCount === undefined) {
         update(ref(db, 'users/' + user.uid), { orderCount: 0 });
       }
 
-      // Populate UI — purely read, zero writes
-      document.getElementById('display-uid').innerText        = user.uid;
-      document.getElementById('edit-username').value          = data.username || '';
-      document.getElementById('user-order-count').innerText   = data.orderCount || 0;
+      document.getElementById('display-uid').innerText      = user.uid;
+      document.getElementById('edit-username').value        = data.username || '';
+      document.getElementById('user-order-count').innerText = data.orderCount || 0;
 
       const initials = (data.username || '??')
         .split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
@@ -139,9 +155,7 @@ onAuthStateChanged(auth, (user) => {
     });
 
   } else {
-    // ── LOGOUT: kill the listener immediately, touch ZERO database paths ──
     if (unsubscribeUserData) { unsubscribeUserData(); unsubscribeUserData = null; }
-
     document.getElementById('login-nav').style.display = 'block';
     document.getElementById('user-nav').style.display  = 'none';
     modal.style.display = 'none';
@@ -169,7 +183,7 @@ bgPicker.oninput = (e) => {
   colorTrigger.style.borderColor  = e.target.value;
 };
 
-/* ── Save settings — only writes username + pfpColor, nothing else ── */
+/* ── Save settings ── */
 document.getElementById('save-settings').onclick = async () => {
   const user = auth.currentUser;
   if (!user) return;
@@ -185,7 +199,7 @@ document.getElementById('save-settings').onclick = async () => {
   }
 };
 
-/* ── Logout — signOut only, zero DB writes, listener already killed above ── */
+/* ── Logout ── */
 document.getElementById('logout-btn').onclick = () => {
   signOut(auth)
     .then(() => window.location.reload())
