@@ -537,3 +537,31 @@ footer {
   #services,
   #contact    { padding: 5rem 6vw; }
 }
+/* Styling the new trigger button */
+#color-trigger {
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text);
+  transition: all 0.2s var(--ease);
+  width: 100%;
+  text-align: center;
+}
+
+#color-trigger:hover {
+  border-color: var(--accent);
+  background: rgba(74,127,245,0.05);
+}
+
+/* Hide the ugly default picker */
+#bg-picker {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+  pointer-events: none;
+}
