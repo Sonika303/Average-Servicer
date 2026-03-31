@@ -78,66 +78,62 @@ const pfpCircle    = document.getElementById('user-initials');
 
 /* ── Total orders counter ── */
 let counterDone = false;
-let counterTarget = 0;
-
-function runCounter() {
-  if (counterDone || counterTarget === 0) return;
-  counterDone = true;
-  const display = document.getElementById('total-orders-display');
-  let val = 0;
-  const step = Math.ceil(counterTarget / 50); // Speed up the animation for large numbers
-  const tick = () => {
-    if (val < counterTarget) {
-      val += step;
-      display.innerText = val > counterTarget ? counterTarget : val;
-      requestAnimationFrame(tick);
-    } else {
-      display.innerText = counterTarget;
-    }
-  };
-  tick();
-}
 
 onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
-  let newTotal = 0;
-  if (users) Object.values(users).forEach(u => newTotal += (u.orderCount || 0));
-  counterTarget = newTotal;
+  let total = 0;
+  if (users) {
+    Object.values(users).forEach(u => total += (u.orderCount || 0));
+  }
 
   const display = document.getElementById('total-orders-display');
   if (!display) return;
 
-  // Set the text immediately if the animation already finished or hasn't started
+  // If we've already animated, just update the number directly
   if (counterDone) {
-    display.innerText = counterTarget;
-  } else {
-    const obs = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) runCounter();
-    }, { threshold: 0.1 });
-    obs.observe(display);
+    display.innerText = total;
+    return;
+  }
+
+  // Animation logic
+  const runCounter = (target) => {
+    counterDone = true;
+    let current = 0;
+    const duration = 2000; // 2 seconds
+    const start = performance.now();
+
+    const step = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out expo function for premium feel
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      
+      display.innerText = Math.floor(ease * target);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        display.innerText = target;
+      }
+    };
+    requestAnimationFrame(step);
+  };
+
+  // Trigger when scrolled into view
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !counterDone) {
+      runCounter(total);
+      observer.disconnect();
+    }
+  }, { threshold: 0.1 });
+
+  observer.observe(display);
+  
+  // Fallback: If they are already at the bottom of the page
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+    runCounter(total);
   }
 });
-
-onValue(ref(db, 'users'), (snapshot) => {
-  const users = snapshot.val();
-  counterTarget = 0;
-  if (users) Object.values(users).forEach(u => counterTarget += (u.orderCount || 0));
-
-  const display = document.getElementById('total-orders-display');
-  if (!display) return;
-
-  // Show raw number immediately (no animation flicker while counter hasn't run)
-  if (!counterDone) display.innerText = counterTarget;
-
-  // Use IntersectionObserver with low threshold so it fires reliably
-  const obs = new IntersectionObserver((entries, self) => {
-    if (!entries[0].isIntersecting) return;
-    self.disconnect();
-    runCounter();
-  }, { threshold: 0.3 });
-  obs.observe(display);
-});
-
 /* ── Auth ── */
 let unsubscribeUserData = null;
 
