@@ -72,7 +72,19 @@
   document.addEventListener('contextmenu', function (e) {
     e.preventDefault();
   });
-   
+  // Get the elements
+const colorTrigger = document.getElementById('color-trigger');
+const bgPicker = document.getElementById('bg-picker');
+
+// 1. Make the button open the color picker
+colorTrigger.onclick = () => bgPicker.click();
+
+// 2. (Optional) Visual feedback: Change the button border when a color is picked
+bgPicker.oninput = (e) => {
+  colorTrigger.style.borderColor = e.target.value;
+  // This also previews the color on the body immediately
+  document.body.style.backgroundColor = e.target.value;
+};   
   /* ── 6. Firebase & Settings Logic ────────────────────────── */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
