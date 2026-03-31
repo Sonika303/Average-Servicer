@@ -399,14 +399,22 @@ body::before {
 .total-count-display {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 3rem; /* Bigger size */
+  font-size: 4rem; /* Increased size */
   line-height: 1;
-  color: var(--text);
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
   
+  /* This creates the moving color effect */
+  background: linear-gradient(to right, #0d0d0d 20%, #4a7ff5 40%, #4a7ff5 60%, #0d0d0d 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: shine 4s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
   /* Animated Gradient Text */
   background: linear-gradient(to right, var(--text) 20%, var(--accent) 40%, var(--accent) 60%, var(--text) 80%);
   background-size: 200% auto;
