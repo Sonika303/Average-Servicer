@@ -81,5 +81,69 @@
   document.addEventListener('contextmenu', function (e) {
     e.preventDefault();
   });
+   
+  /* ── 6. Firebase & Settings Logic ────────────────────────── */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
+    authDomain: "average-servicer.firebaseapp.com",
+    databaseURL: "https://average-servicer-default-rtdb.firebaseio.com",
+    projectId: "average-servicer",
+    storageBucket: "average-servicer.firebasestorage.app",
+    messagingSenderId: "186112502875",
+    appId: "1:186112502875:web:ba22beac9aac70fe9b237e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  const modal = document.getElementById('settings-modal');
+  const openBtn = document.getElementById('open-settings');
+  const closeBtn = document.querySelector('.close-modal');
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('login-nav').style.display = 'none';
+      document.getElementById('user-nav').style.display = 'block';
+      
+      // Load user data from Realtime Database
+      onValue(ref(db, 'users/' + user.uid), (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById('display-uid').innerText = user.uid;
+          document.getElementById('edit-username').value = data.username;
+          // WhatsApp Style Initials (e.g., "John Doe" -> "JD")
+          const initials = data.username.split(' ').map(n => n[0]).join('').toUpperCase();
+          document.getElementById('user-initials').innerText = initials.substring(0,2);
+          
+          if(data.bgColor) {
+            document.body.style.backgroundColor = data.bgColor;
+            document.getElementById('bg-picker').value = data.bgColor;
+          }
+        }
+      });
+    }
+  });
+
+  openBtn.onclick = () => modal.style.display = 'flex';
+  closeBtn.onclick = () => modal.style.display = 'none';
+
+  document.getElementById('save-settings').onclick = async () => {
+    const user = auth.currentUser;
+    const newName = document.getElementById('edit-username').value;
+    const newColor = document.getElementById('bg-picker').value;
+
+    await update(ref(db, 'users/' + user.uid), {
+      username: newName,
+      bgColor: newColor
+    });
+    
+    document.body.style.backgroundColor = newColor;
+    alert("Settings Saved!");
+    modal.style.display = 'none';
+  };
 }());
