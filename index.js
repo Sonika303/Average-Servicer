@@ -92,7 +92,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// DECLARE THESE ONCE HERE
 const modal = document.getElementById('settings-modal');
 const openBtn = document.getElementById('open-settings');
 const closeBtn = document.querySelector('.close-modal');
@@ -100,7 +99,21 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. Auth State & Data Loading
+// 1. Calculate Total Orders from all users
+const totalOrdersRef = ref(db, 'users');
+onValue(totalOrdersRef, (snapshot) => {
+  const users = snapshot.val();
+  let totalCount = 0;
+  if (users) {
+    Object.values(users).forEach(user => {
+      totalCount += (user.orderCount || 0);
+    });
+  }
+  const display = document.getElementById('total-orders-display');
+  if(display) display.innerText = totalCount;
+});
+
+// 2. Auth State & Individual Data
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-nav').style.display = 'none';
@@ -111,6 +124,7 @@ onAuthStateChanged(auth, (user) => {
       if (data) {
         document.getElementById('display-uid').innerText = user.uid;
         document.getElementById('edit-username').value = data.username || "";
+        document.getElementById('user-order-count').innerText = data.orderCount || 0;
         
         const name = data.username || "??";
         const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -125,19 +139,26 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// 2. Modal Controls
+// 3. Copy ID Logic
+document.getElementById('copy-id').onclick = () => {
+  const uid = document.getElementById('display-uid').innerText;
+  navigator.clipboard.writeText(uid).then(() => {
+    const feedback = document.getElementById('copy-feedback');
+    feedback.style.display = 'inline';
+    setTimeout(() => { feedback.style.display = 'none'; }, 2000);
+  });
+};
+
+// 4. Modal & Color UI
 openBtn.onclick = () => modal.style.display = 'flex';
 closeBtn.onclick = () => modal.style.display = 'none';
-
-// 3. Color Picker UI Logic
 colorTrigger.onclick = () => bgPicker.click();
-
 bgPicker.oninput = (e) => {
   pfpCircle.style.backgroundColor = e.target.value;
   colorTrigger.style.borderColor = e.target.value;
 };
 
-// 4. Save Logic
+// 5. Save Settings
 document.getElementById('save-settings').onclick = async () => {
   const user = auth.currentUser;
   if (!user) return;
@@ -149,11 +170,11 @@ document.getElementById('save-settings').onclick = async () => {
     await update(ref(db, 'users/' + user.uid), {
       username: newName,
       pfpColor: newColor
+      // orderCount is handled manually by you in Firebase console
     });
-    
-    alert("Profile Updated!");
+    alert("Settings Saved!");
     modal.style.display = 'none';
   } catch (error) {
-    console.error("Save failed:", error);
+    console.error(error);
   }
 };
