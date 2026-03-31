@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Average Servicer</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Mono:wght@300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fcfcfc;
+      --surface: rgba(255,255,255,0.70);
+      --border: rgba(0,0,0,0.06);
+      --text: #0d0d0d;
+      --accent: #4a7ff5;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-card {
+      background: var(--surface);
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--border);
+      padding: 40px;
+      border-radius: 25px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+      width: 90%;
+      max-width: 380px;
+    }
+
+    h1 { font-family: 'Syne'; font-size: 1.4rem; margin-bottom: 5px; letter-spacing: -1px; }
+    .subtitle { font-size: 0.7rem; color: var(--accent); margin-bottom: 30px; letter-spacing: 2px; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-family: 'DM Mono';
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+    }
+
+    .google-btn { background: white; color: var(--text); }
+    .google-btn:hover { background: #f9f9f9; transform: translateY(-2px); }
+    .google-btn img { width: 18px; }
+
+    .back-btn { background: var(--text); color: white; font-size: 0.8rem; }
+    .back-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    #user-profile { display: none; margin-top: 20px; animation: fadeIn 0.5s ease; }
+    .profile-pic { width: 70px; border-radius: 50%; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .welcome-text { font-size: 0.9rem; margin: 10px 0; font-weight: bold; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div id="login-ui">
+      <h1>AVERAGE SERVICER</h1>
+      <p class="subtitle">// ACCESS PORTAL</p>
+      
+      <button class="btn google-btn" id="googleLogin">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G">
+        Login with Google
+      </button>
+
+      <a href="https://sonika303.github.io/Average-Servicer/" class="btn back-btn">Back to Website</a>
+    </div>
+
+    <div id="user-profile">
+      <img src="" id="user-pic" class="profile-pic">
+      <p class="welcome-text">Logged in as: <span id="user-name" style="color: var(--accent);"></span></p>
+      <p style="font-size: 0.7rem; color: #888;">Saving data... Redirecting soon.</p>
+      <a href="https://sonika303.github.io/Average-Servicer/" class="btn back-btn" style="margin-top: 20px;">Go to Home Now</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
+      authDomain: "average-servicer.firebaseapp.com",
+      projectId: "average-servicer",
+      storageBucket: "average-servicer.firebasestorage.app",
+      messagingSenderId: "186112502875",
+      appId: "1:186112502875:web:ba22beac9aac70fe9b237e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginBtn = document.getElementById('googleLogin');
+    const loginUI = document.getElementById('login-ui');
+    const profileUI = document.getElementById('user-profile');
+
+    loginBtn.onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // SAVE DATA TO FIRESTORE
+        await setDoc(doc(db, "users", user.uid), {
+          username: user.displayName,
+          email: user.email,
+          photo: user.photoURL,
+          joinedAt: new Date()
+        }, { merge: true });
+
+        // UPDATE UI
+        loginUI.style.display = 'none';
+        profileUI.style.display = 'block';
+        document.getElementById('user-name').innerText = user.displayName;
+        document.getElementById('user-pic').src = user.photoURL;
+
+        // AUTO REDIRECT
+        setTimeout(() => {
+          window.location.href = "https://sonika303.github.io/Average-Servicer/";
+        }, 3000);
+
+      } catch (error) {
+        console.error(error);
+        alert("Login Error. Check if Google Auth is enabled in Firebase!");
+      }
+    };
+  </script>
+</body>
+</html>
