@@ -99,8 +99,10 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. GLOBAL TOTAL ORDERS (With Animated Count-Up)
+// 1. GLOBAL TOTAL ORDERS (With Scroll-Triggered Animation)
 let currentDisplayCount = 0;
+let hasAnimated = false; 
+
 onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
   let targetCount = 0;
@@ -109,22 +111,30 @@ onValue(ref(db, 'users'), (snapshot) => {
   }
   
   const totalDisplay = document.getElementById('total-orders-display');
-  if (totalDisplay) {
-    // Smoothly animate the number up
+  
+  // This function runs the actual numbers
+  const startCounter = () => {
+    if (hasAnimated) return;
+    hasAnimated = true;
     const animateScroll = () => {
       if (currentDisplayCount < targetCount) {
         currentDisplayCount++;
         totalDisplay.innerText = currentDisplayCount;
-        setTimeout(animateScroll, 40); // Controls the speed of the count-up
+        setTimeout(animateScroll, 30); 
       } else {
         totalDisplay.innerText = targetCount;
-        currentDisplayCount = targetCount; // Sync for future updates
       }
     };
     animateScroll();
-  }
-});
+  };
 
+  // Trigger counter only when the user scrolls to it
+  const observer = new IntersectionObserver((entries) => {
+    if(entries[0].isIntersecting) startCounter();
+  }, { threshold: 1.0 });
+
+  if (totalDisplay) observer.observe(totalDisplay);
+});
 // 2. AUTH & USER DATA (Clean & Initialize)
 onAuthStateChanged(auth, (user) => {
   if (user) {
