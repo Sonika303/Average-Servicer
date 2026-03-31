@@ -377,6 +377,65 @@ body::before {
   cursor: pointer;
   transition: all 0.3s var(--ease);
 }
+/* ── Total Orders Section ─────────────────── */
+.total-orders-container {
+  text-align: left;
+  margin: -1.5rem 0 3rem 0;
+  padding: 1.5rem;
+  background: rgba(74, 127, 245, 0.03);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+}
+
+.total-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.total-count-display {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 3rem; /* Bigger size */
+  line-height: 1;
+  color: var(--text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  /* Animated Gradient Text */
+  background: linear-gradient(to right, var(--text) 20%, var(--accent) 40%, var(--accent) 60%, var(--text) 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: shine 4s linear infinite;
+}
+
+/* Subtle Pulse Animation for the number */
+#total-orders-display {
+  display: inline-block;
+  animation: statPulse 2s ease-in-out infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
+
+@keyframes statPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 8px rgba(74, 127, 245, 0.2)); }
+  100% { transform: scale(1); }
+}
+
+/* Mobile Tweak */
+@media (max-width: 580px) {
+  .total-count-display { font-size: 2.2rem; }
+}
 /* ── Card body ──────────────────────────────── */
 .card-desc {
   font-family: 'DM Mono', monospace;
