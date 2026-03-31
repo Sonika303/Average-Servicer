@@ -97,19 +97,33 @@ body::before {
   border-left:3px solid var(--accent);
   border-radius:0 12px 12px 0;
 }
-.total-label { font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem; }
+.total-label {
+  font-size:.65rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:.5rem;
+}
+
+/*
+  FIX: statPulse was on #total-orders-display (a child span).
+  transform on a child breaks background-clip:text on the parent,
+  making the number invisible. Pulse is now on the wrapper h3 instead,
+  and the span is left as plain inline text so the gradient clip works.
+*/
 .total-count-display {
-  font-family:'Syne',sans-serif; font-weight:800; font-size:4rem; line-height:1; margin:0;
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:4rem; line-height:1; margin:0;
   background:linear-gradient(to right,#0d0d0d 20%,#4a7ff5 40%,#4a7ff5 60%,#0d0d0d 80%);
   background-size:200% auto;
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  animation:shine 4s linear infinite;
+  animation:shine 4s linear infinite, statPulse 2.5s ease-in-out infinite;
 }
-#total-orders-display { display:inline-block; animation:statPulse 2s ease-in-out infinite; }
+
+/* span is just a text node — NO transform, NO own animation */
+#total-orders-display { display:inline; }
+
 @keyframes shine { to { background-position:200% center; } }
 @keyframes statPulse {
-  0%,100% { transform:scale(1); }
-  50% { transform:scale(1.05); filter:drop-shadow(0 0 8px rgba(74,127,245,.2)); }
+  0%,100% { opacity:1; }
+  50%      { opacity:.75; filter:drop-shadow(0 0 10px rgba(74,127,245,.35)); }
 }
 
 /* ── Category headers ── */
