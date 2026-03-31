@@ -363,7 +363,20 @@ body::before {
 .edit-group label { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: var(--accent); }
 .edit-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-family: 'DM Mono'; }
 #save-settings { width: 100%; margin-top: 10px; cursor: pointer; border: none; }
+.order-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-top: 8px;
+  letter-spacing: 0.1em;
+}
 
+#copy-id:hover { opacity: 1; color: var(--accent); }
+
+#save-settings {
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
 /* ── Card body ──────────────────────────────── */
 .card-desc {
   font-family: 'DM Mono', monospace;
