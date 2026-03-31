@@ -79,34 +79,42 @@ const pfpCircle    = document.getElementById('user-initials');
 /* ── Total orders counter ── */
 let counterDone = false;
 
-onValue(ref(db, 'users'), (snapshot) => {
+// We point to 'users' to sum everyone's orderCount
+const totalOrdersRef = ref(db, 'users');
+
+onValue(totalOrdersRef, (snapshot) => {
   const users = snapshot.val();
   let total = 0;
+  
   if (users) {
-    Object.values(users).forEach(u => total += (u.orderCount || 0));
+    // This loops through every single user ID in your DB and adds their orderCount
+    Object.keys(users).forEach(uid => {
+      const count = parseInt(users[uid].orderCount);
+      if (!isNaN(count)) {
+        total += count;
+      }
+    });
   }
 
   const display = document.getElementById('total-orders-display');
   if (!display) return;
 
-  // If we've already animated, just update the number directly
+  // Update immediately if animation already ran once
   if (counterDone) {
     display.innerText = total;
     return;
   }
 
-  // Animation logic
   const runCounter = (target) => {
     counterDone = true;
     let current = 0;
-    const duration = 2000; // 2 seconds
+    const duration = 1500; 
     const start = performance.now();
 
     const step = (now) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out expo function for premium feel
-      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const ease = 1 - Math.pow(1 - progress, 3); // Clean cubic ease-out
       
       display.innerText = Math.floor(ease * target);
 
@@ -119,7 +127,7 @@ onValue(ref(db, 'users'), (snapshot) => {
     requestAnimationFrame(step);
   };
 
-  // Trigger when scrolled into view
+  // Trigger counter when the section is visible
   const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && !counterDone) {
       runCounter(total);
@@ -128,11 +136,6 @@ onValue(ref(db, 'users'), (snapshot) => {
   }, { threshold: 0.1 });
 
   observer.observe(display);
-  
-  // Fallback: If they are already at the bottom of the page
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-    runCounter(total);
-  }
 });
 /* ── Auth ── */
 let unsubscribeUserData = null;
