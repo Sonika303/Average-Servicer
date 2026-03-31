@@ -99,15 +99,30 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. GLOBAL TOTAL ORDERS (Sum of all users)
+// 1. GLOBAL TOTAL ORDERS (With Animated Count-Up)
+let currentDisplayCount = 0;
 onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
-  let totalCount = 0;
+  let targetCount = 0;
   if (users) {
-    Object.values(users).forEach(u => totalCount += (u.orderCount || 0));
+    Object.values(users).forEach(u => targetCount += (u.orderCount || 0));
   }
+  
   const totalDisplay = document.getElementById('total-orders-display');
-  if (totalDisplay) totalDisplay.innerText = totalCount;
+  if (totalDisplay) {
+    // Smoothly animate the number up
+    const animateScroll = () => {
+      if (currentDisplayCount < targetCount) {
+        currentDisplayCount++;
+        totalDisplay.innerText = currentDisplayCount;
+        setTimeout(animateScroll, 40); // Controls the speed of the count-up
+      } else {
+        totalDisplay.innerText = targetCount;
+        currentDisplayCount = targetCount; // Sync for future updates
+      }
+    };
+    animateScroll();
+  }
 });
 
 // 2. AUTH & USER DATA (Clean & Initialize)
@@ -119,23 +134,22 @@ onAuthStateChanged(auth, (user) => {
     onValue(ref(db, 'users/' + user.uid), (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // --- DATA CLEANUP & INITIALIZATION ---
+        // --- DATA JANITOR: Cleanup & Initialization ---
         const updates = {};
         let needsUpdate = false;
 
-        // Auto-delete old bgColor key if it exists
+        // Automatically delete old 'bgColor' key if found
         if (data.bgColor !== undefined) {
           updates['bgColor'] = null; 
           needsUpdate = true;
         }
-        // Initialize orderCount if missing
+        // Ensure every user has an orderCount key
         if (data.orderCount === undefined) {
           updates['orderCount'] = 0;
           needsUpdate = true;
         }
-        // Execute cleanup if needed
         if (needsUpdate) update(ref(db, 'users/' + user.uid), updates);
-        // --------------------------------------
+        // ----------------------------------------------
 
         // UI Updates
         document.getElementById('display-uid').innerText = user.uid;
@@ -149,6 +163,7 @@ onAuthStateChanged(auth, (user) => {
         if (data.pfpColor) {
           pfpCircle.style.backgroundColor = data.pfpColor;
           bgPicker.value = data.pfpColor;
+          colorTrigger.style.borderColor = data.pfpColor;
         }
       }
     });
