@@ -35,6 +35,7 @@
   <section id="services">
     <p  class="label">What we build</p>
     <h2 class="sec-title">Services</h2>
+    <p class="label" style="color:var(--muted); margin-top:-15px;">Total Orders Fulfilled: <span id="total-orders-display">0</span></p>
     <p  class="sec-desc">Clean systems. Scalable logic. Every deliverable engineered with intent.</p>
 
     <!-- ── Category: Web Development ── -->
@@ -169,26 +170,33 @@
   </footer>
 
   <div id="settings-modal" class="modal">
-    <div class="modal-content">
+   <div class="modal-content">
       <div class="modal-header">
         <span class="close-modal">&times;</span>
         <h2>Settings</h2>
       </div>
       <div class="profile-section">
         <div id="user-initials" class="whatsapp-pfp">??</div>
-        <div class="id-badge">MAIN ID: <span id="display-uid">--------</span></div>
+        <div class="id-badge">
+          ID: <span id="display-uid">--------</span>
+          <span id="copy-id" style="cursor:pointer; margin-left:8px; opacity:0.6;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </span>
+          <span id="copy-feedback" style="display:none; color:var(--green); font-size:8px; margin-left:5px;">COPIED!</span>
+        </div>
+        <div class="order-badge">ORDERS: <span id="user-order-count">0</span></div>
       </div>
       <div class="edit-group">
         <label>Display Name</label>
         <input type="text" id="edit-username" placeholder="Enter Name">
       </div>
       <div class="edit-group">
-  <label>Background Color</label>
-  <button type="button" id="color-trigger">Change Color</button>
-  <input type="color" id="bg-picker" value="#fcfcfc">
-</div>
-</div>
-
+        <label>PFP Background</label>
+        <button type="button" id="color-trigger">Change Color</button>
+        <input type="color" id="bg-picker" value="#fcfcfc">
+      </div>
+      <button id="save-settings" class="hero-cta" style="width:100%; border:none; margin-top:10px;">Save Changes</button>
+    </div>
   <script type="module" src="index.js"></script>
 </body>
 </html>
