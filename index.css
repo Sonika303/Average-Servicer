@@ -377,6 +377,19 @@ body::before {
   cursor: pointer;
   transition: all 0.3s var(--ease);
 }
+/* Add to index.css */
+#logout-btn {
+  background: rgba(255, 77, 77, 0.05) !important;
+  color: #ff4d4d !important;
+  border: 1px solid rgba(255, 77, 77, 0.2) !important;
+  margin-top: 15px !important;
+}
+
+#logout-btn:hover {
+  background: #ff4d4d !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(255, 77, 77, 0.2);
+}
 /* ── Total Orders Section ─────────────────── */
 .total-orders-container {
   text-align: left;
