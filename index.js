@@ -113,24 +113,37 @@ bgPicker.oninput = (e) => {
       document.getElementById('login-nav').style.display = 'none';
       document.getElementById('user-nav').style.display = 'block';
       
-      // Load user data from Realtime Database
-      onValue(ref(db, 'users/' + user.uid), (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          document.getElementById('display-uid').innerText = user.uid;
-          document.getElementById('edit-username').value = data.username;
-          // WhatsApp Style Initials (e.g., "John Doe" -> "JD")
-          const initials = data.username.split(' ').map(n => n[0]).join('').toUpperCase();
-          document.getElementById('user-initials').innerText = initials.substring(0,2);
-          
-          if(data.bgColor) {
-            document.body.style.backgroundColor = data.bgColor;
-            document.getElementById('bg-picker').value = data.bgColor;
-          }
-        }
-      });
-    }
+// UI Logic for the Color Trigger
+const colorTrigger = document.getElementById('color-trigger');
+const bgPicker = document.getElementById('bg-picker');
+const pfpCircle = document.getElementById('user-initials');
+
+colorTrigger.onclick = () => bgPicker.click();
+
+// Live Preview: Changes PFP color as you slide the picker
+bgPicker.oninput = (e) => {
+  pfpCircle.style.backgroundColor = e.target.value;
+  colorTrigger.style.borderColor = e.target.value;
+};
+
+// Updated Save Logic
+document.getElementById('save-settings').onclick = async () => {
+  const user = auth.currentUser;
+  const newName = document.getElementById('edit-username').value;
+  const newColor = document.getElementById('bg-picker').value;
+
+  // Save to Firebase
+  await update(ref(db, 'users/' + user.uid), {
+    username: newName,
+    pfpColor: newColor 
   });
+
+  // Final UI Update (PFP ONLY)
+  pfpCircle.style.backgroundColor = newColor;
+  
+  alert("Profile Updated!");
+  modal.style.display = 'none';
+};
 
   openBtn.onclick = () => modal.style.display = 'flex';
   closeBtn.onclick = () => modal.style.display = 'none';
