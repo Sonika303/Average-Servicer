@@ -99,7 +99,7 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. GLOBAL TOTAL ORDERS (3-Second Scaled Animation)
+// 1. GLOBAL TOTAL ORDERS (Fixed 3-Second Animation)
 let hasAnimated = false; 
 
 onValue(ref(db, 'users'), (snapshot) => {
@@ -115,14 +115,14 @@ onValue(ref(db, 'users'), (snapshot) => {
     if (hasAnimated || targetCount === 0) return;
     hasAnimated = true;
 
-    const duration = 3000; // 3 Seconds
+    const duration = 3000; // Total time 3s
     const startTime = performance.now();
 
     const animate = (currentTime) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Ease Out Quad formula for smoother finish
+      // Easing function for a premium feel
       const easedProgress = progress * (2 - progress);
       const currentValue = Math.floor(easedProgress * targetCount);
       
@@ -144,11 +144,10 @@ onValue(ref(db, 'users'), (snapshot) => {
   if (totalDisplay) observer.observe(totalDisplay);
 });
 
-// 2. AUTH & USER DATA (With Clean Logout State)
+// 2. AUTH & USER DATA (Ghost state maintained during logout)
 onAuthStateChanged(auth, (user) => {
-  const userRef = user ? ref(db, 'users/' + user.uid) : null;
-
   if (user) {
+    const userRef = ref(db, 'users/' + user.uid);
     document.getElementById('login-nav').style.display = 'none';
     document.getElementById('user-nav').style.display = 'block';
 
@@ -178,26 +177,16 @@ onAuthStateChanged(auth, (user) => {
       }
     });
   } else {
-    // PREVENT INSTANT WIPE: Reset UI to defaults when logged out
-    if (userRef) off(userRef); // Kill the database listener
-    
+    // Navigation switch only - avoids the "flash" of empty data
     document.getElementById('login-nav').style.display = 'block';
     document.getElementById('user-nav').style.display = 'none';
-    modal.style.display = 'none';
-    
-    // Reset individual elements to placeholders
-    document.getElementById('display-uid').innerText = "--------";
-    document.getElementById('edit-username').value = "";
-    document.getElementById('user-order-count').innerText = "0";
-    pfpCircle.innerText = "??";
-    pfpCircle.style.backgroundColor = "var(--accent)";
   }
 });
 
 // 3. COPY ID LOGIC
 document.getElementById('copy-id').onclick = () => {
   const uid = document.getElementById('display-uid').innerText;
-  if(uid.includes('-')) return; // Don't copy placeholder
+  if(uid.includes('-')) return;
   navigator.clipboard.writeText(uid).then(() => {
     const feedback = document.getElementById('copy-feedback');
     feedback.style.display = 'inline';
@@ -238,6 +227,7 @@ document.getElementById('save-settings').onclick = async () => {
 // 6. LOGOUT LOGIC
 document.getElementById('logout-btn').onclick = () => {
   signOut(auth).then(() => {
+    // Reload handles the data clearing so the user doesn't see it happen
     window.location.reload();
   }).catch((err) => {
     console.error("Logout Error:", err);
