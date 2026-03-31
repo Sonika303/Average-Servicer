@@ -2,68 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Average Servicer | Digital Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVERAGE SERVICER | Digital Excellence</title>
     <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --accent: #00f2ff; /* Cyber Blue */
+            --accent-2: #ff0055; /* Neon Pink/Red */
+            --text: #e0e0e0;
+        }
+
         body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: 'Courier New', monospace;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background Glow */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05), transparent 40%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
             text-align: center;
+            padding: 100px 0 60px;
         }
-        .hero {
-            padding: 100px 20px;
-            border-bottom: 2px solid #333;
-            width: 100%;
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: -2px;
+            margin: 0;
+            background: linear-gradient(to right, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
         }
-        h1 { color: #00d4ff; font-size: 3rem; text-transform: uppercase; }
-        .card-container {
-            display: flex;
-            gap: 20px;
-            padding: 50px;
-            flex-wrap: wrap;
-            justify-content: center;
+
+        .tagline {
+            opacity: 0.6;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
         }
+
+        /* Glass Cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 50px;
+        }
+
         .card {
-            border: 2px solid #333;
-            padding: 20px;
-            width: 250px;
-            transition: 0.3s;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
+
         .card:hover {
-            border-color: #ff4b2b;
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
         }
-        .btn {
-            background: #00d4ff;
-            color: black;
-            padding: 15px 30px;
-            text-decoration: none;
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .price {
+            font-size: 2rem;
             font-weight: bold;
-            margin-top: 20px;
+            display: block;
+            margin: 15px 0;
+        }
+
+        .price span { font-size: 1rem; opacity: 0.5; }
+
+        /* The "Boss" Button */
+        .cta-btn {
             display: inline-block;
+            background: white;
+            color: black;
+            padding: 18px 45px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-top: 40px;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-btn:hover {
+            transform: scale(1.05);
+            background: var(--accent);
+            box-shadow: 0 0 30px var(--accent);
+        }
+
+        footer {
+            margin-top: 100px;
+            text-align: center;
+            opacity: 0.3;
+            font-size: 0.8rem;
+        }
+
+        /* Subtle scanline effect for that Dev vibe */
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 242, 255, 0.1);
+            position: fixed;
+            top: 0;
+            z-index: 10;
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>AVERAGE SERVICER</h1>
-        <p>WE BUILD THE STUFF YOU CAN'T.</p>
-        <a href="YOUR_DISCORD_LINK" class="btn">OPEN A TICKET</a>
-    </div>
+    <div class="scanline"></div>
 
-    <div class="card-container">
-        <div class="card">
-            <h3>WEB DESIGN</h3>
-            <p>From ₹199. High performance.</p>
+    <div class="container">
+        <header>
+            <h1 class="logo">Average Servicer</h1>
+            <p class="tagline">// DIGITAL SOLUTIONS FOR THE NEW AGE</p>
+            <a href="YOUR_DISCORD_LINK_HERE" class="cta-btn">ENTER THE STUDIO</a>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3>WEB SYSTEMS</h3>
+                <p>Clean, high-performance HTML/JS sites tailored for your brand.</p>
+                <span class="price">₹199 <span>/ start</span></span>
+            </div>
+
+            <div class="card">
+                <h3>ROBLOX DEV</h3>
+                <p>Advanced mechanics: AI Busters, Stealth logic, and UI Systems.</p>
+                <span class="price">₹99 <span>/ start</span></span>
+            </div>
+
+            <div class="card">
+                <h3>TRADER LOGIC</h3>
+                <p>Secure item exchange & database systems for Roblox ecosystems.</p>
+                <span class="price">₹49 <span>/ start</span></span>
+            </div>
         </div>
-        <div class="card">
-            <h3>ROBLOX DEV</h3>
-            <p>From ₹99. Advanced scripting.</p>
-        </div>
+
+        <footer>
+            &copy; 2026 AVERAGE SERVICER STUDIO. BUILT FOR THE BEST.
+        </footer>
     </div>
 </body>
 </html>
