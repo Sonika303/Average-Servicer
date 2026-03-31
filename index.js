@@ -226,8 +226,19 @@ document.getElementById('save-settings').onclick = async () => {
 
 // 6. LOGOUT LOGIC
 document.getElementById('logout-btn').onclick = () => {
+  const user = auth.currentUser;
+  
+  // 1. Hide the modal instantly so the user can't see anything change
+  modal.style.display = 'none';
+
+  // 2. Kill the active listeners so they stop updating the UI
+  if (user) {
+    off(ref(db, 'users/' + user.uid)); 
+    off(ref(db, 'users')); 
+  }
+
+  // 3. Sign out and hard reload
   signOut(auth).then(() => {
-    // Reload handles the data clearing so the user doesn't see it happen
     window.location.reload();
   }).catch((err) => {
     console.error("Logout Error:", err);
