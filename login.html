@@ -82,6 +82,8 @@
     const firebaseConfig = {
       apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
       authDomain: "average-servicer.firebaseapp.com",
+      // ADD YOUR DATABASE URL HERE IF IT WAS IN YOUR SETTINGS
+      databaseURL: "https://average-servicer-default-rtdb.firebaseio.com", 
       projectId: "average-servicer",
       storageBucket: "average-servicer.firebasestorage.app",
       messagingSenderId: "186112502875",
@@ -99,20 +101,21 @@
         const user = result.user;
         document.getElementById('status').style.display = 'block';
 
-        // REALTIME DATABASE SAVE: users -> UserID -> Fields
+        // REALTIME DATABASE SAVE
+        // This creates a "users" node, then a node with the User's UID
         await set(ref(db, 'users/' + user.uid), {
           username: user.displayName,
           emailid: user.email
         });
 
-        // Small delay to ensure save completes before redirect
         setTimeout(() => {
           window.location.href = "https://sonika303.github.io/Average-Servicer/";
         }, 1000);
 
-      } catch (e) {
-        console.error("Login failed:", e);
-        alert("Make sure Google Auth is enabled in your Firebase console!");
+      } catch (error) {
+        console.error("Error code:", error.code);
+        console.error("Error message:", error.message);
+        alert("Login failed. Check browser console for specific error.");
       }
     };
   </script>
