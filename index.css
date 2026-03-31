@@ -319,6 +319,18 @@ body::before {
   letter-spacing: -.01em;
 }
 
+/* Settings Modal (WhatsApp Style) */
+.modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+.modal-content { background: var(--bg); width: 90%; max-width: 400px; padding: 30px; border-radius: 24px; border: 1px solid var(--border); position: relative; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.close-modal { cursor: pointer; font-size: 24px; color: var(--muted); }
+.whatsapp-pfp { width: 80px; height: 80px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-family: 'Syne'; margin: 0 auto 15px; font-weight: 800; text-transform: uppercase; }
+.id-badge { font-size: 10px; color: var(--muted); background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 5px; margin-bottom: 20px; }
+.edit-group { text-align: left; margin-bottom: 15px; }
+.edit-group label { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: var(--accent); }
+.edit-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-family: 'DM Mono'; }
+#save-settings { width: 100%; margin-top: 10px; cursor: pointer; border: none; }
+
 /* ── Card body ──────────────────────────────── */
 .card-desc {
   font-family: 'DM Mono', monospace;
