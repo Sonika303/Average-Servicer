@@ -1,97 +1,79 @@
-/**
- * index.js — Average Servicer
- * Ultra-lightweight scroll reveals + hero entrance animation.
- * No dependencies. ~70 lines.
- */
+/* ═══════════════════════════════════════════
+   index.js — Average Servicer
+   Scroll reveals · Nav · Card tilt
+   No typewriter. No heavy libs. ~55 lines.
+   ═══════════════════════════════════════════ */
 
 (function () {
   'use strict';
 
-  /* ── 1. Hero Entrance (staggered, CSS-driven) ─────────────────── */
-  const heroEls = document.querySelectorAll('#hero .reveal');
+  /* 1 · Hero fade-in on load
+  ─────────────────────────────────────────── */
+  const heroItems = document.querySelectorAll('#hero .fi');
 
-  heroEls.forEach((el, i) => {
-    el.style.transition = `opacity 0.75s ease ${i * 0.15 + 0.2}s,
-                           transform 0.75s cubic-bezier(.22,.68,0,1.2) ${i * 0.15 + 0.2}s`;
-    // Small rAF delay ensures CSS transition fires after paint
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('revealed')));
+  heroItems.forEach(function (el, i) {
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(16px)';
+    el.style.transition =
+      'opacity .7s ease ' + (i * .14 + .15) + 's, ' +
+      'transform .7s cubic-bezier(.22,.68,0,1.18) ' + (i * .14 + .15) + 's';
+  });
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      heroItems.forEach(function (el) {
+        el.style.opacity   = '1';
+        el.style.transform = 'none';
+      });
+    });
   });
 
 
-  /* ── 2. Scroll Reveal (IntersectionObserver) ──────────────────── */
-  const revealEls = document.querySelectorAll('.card, .contact-icon');
+  /* 2 · Scroll reveal (IntersectionObserver)
+  ─────────────────────────────────────────── */
+  var targets = document.querySelectorAll('.card, .pill');
 
-  // Stagger cards when they enter viewport
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
       if (!entry.isIntersecting) return;
-      const el = entry.target;
-
-      // Give siblings inside the same parent a stagger offset
-      const siblings = Array.from(el.parentElement.children).filter(
-        c => c.classList.contains('card') || c.classList.contains('contact-icon')
-      );
-      const idx = siblings.indexOf(el);
-
-      el.style.transition = `opacity 0.65s ease ${idx * 0.12}s,
-                             transform 0.65s cubic-bezier(.22,.68,0,1.2) ${idx * 0.12}s,
-                             box-shadow 0.35s cubic-bezier(.22,.68,0,1.2),
-                             border-color 0.35s ease,
-                             background 0.35s ease`;
-
-      requestAnimationFrame(() => el.classList.add('revealed'));
-      observer.unobserve(el);
+      var el  = entry.target;
+      var siblings = Array.from(el.parentElement.children).filter(function (c) {
+        return c.classList.contains('card') || c.classList.contains('pill');
+      });
+      var idx = siblings.indexOf(el);
+      el.style.transitionDelay = (idx * .1) + 's';
+      el.classList.add('visible');
+      io.unobserve(el);
     });
-  }, {
-    threshold: 0.12,
-    rootMargin: '0px 0px -40px 0px',
-  });
+  }, { threshold: .1, rootMargin: '0px 0px -30px 0px' });
 
-  revealEls.forEach(el => observer.observe(el));
+  targets.forEach(function (el) { io.observe(el); });
 
 
-  /* ── 3. Frosted Nav Opacity on Scroll ────────────────────────── */
-  const nav = document.querySelector('nav');
+  /* 3 · Nav opacity on scroll
+  ─────────────────────────────────────────── */
+  var nav = document.getElementById('navbar');
 
-  const updateNav = () => {
-    const y = window.scrollY;
-    const opacity = Math.min(0.95, 0.72 + y / 400);
-    nav.style.background = `rgba(252,252,252,${opacity})`;
-  };
-
-  window.addEventListener('scroll', updateNav, { passive: true });
+  window.addEventListener('scroll', function () {
+    var alpha = Math.min(.96, .75 + window.scrollY / 350);
+    nav.style.background = 'rgba(252,252,252,' + alpha + ')';
+  }, { passive: true });
 
 
-  /* ── 4. Card Tilt on Mouse Move (subtle, GPU-safe) ───────────── */
-  const cards = document.querySelectorAll('.card');
-
-  cards.forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-      const rect   = card.getBoundingClientRect();
-      const cx     = rect.left + rect.width  / 2;
-      const cy     = rect.top  + rect.height / 2;
-      const dx     = (e.clientX - cx) / (rect.width  / 2);   // -1 → 1
-      const dy     = (e.clientY - cy) / (rect.height / 2);   // -1 → 1
-      const rotX   = dy * -5;   // max ±5°
-      const rotY   = dx *  5;
-
-      card.style.transform = `translateY(-6px) perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+  /* 4 · Card subtle tilt on hover
+  ─────────────────────────────────────────── */
+  document.querySelectorAll('.card').forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      var r  = card.getBoundingClientRect();
+      var dx = (e.clientX - r.left  - r.width  / 2) / (r.width  / 2);
+      var dy = (e.clientY - r.top   - r.height / 2) / (r.height / 2);
+      card.style.transform =
+        'translateY(-5px) perspective(700px) rotateX(' + (dy * -4) + 'deg) rotateY(' + (dx * 4) + 'deg)';
     });
 
-    card.addEventListener('mouseleave', () => {
+    card.addEventListener('mouseleave', function () {
       card.style.transform = '';
     });
   });
 
-
-  /* ── 5. Smooth anchor scrolling (fallback for older Safari) ───── */
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', (e) => {
-      const target = document.querySelector(anchor.getAttribute('href'));
-      if (!target) return;
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-
-})();
+}());
