@@ -322,17 +322,17 @@ body::before {
 /* Settings Modal (WhatsApp Style) */
 /* Settings Modal (Fixed Scaling & Position) */
 .modal { 
-  display: none; 
+  display: none; /* Keeps it hidden until button click */
   position: fixed; 
   inset: 0; 
-  z-index: 1000; 
+  z-index: 9999; /* Higher than navbar (99) to prevent overlap */
   background: rgba(0,0,0,0.6); 
   backdrop-filter: blur(8px); 
-  display: none; /* Controlled by JS */
+  -webkit-backdrop-filter: blur(8px);
   align-items: center; 
   justify-content: center; 
   padding: 20px;
-  overflow-y: auto; /* Allows scrolling if screen is too small */
+  overflow-y: auto;
 }
 .modal-content { 
   background: var(--bg); 
