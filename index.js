@@ -1,4 +1,3 @@
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 /* ── 1. Hero entrance (staggered fade-in) ────────────────── */
   var heroItems = document.querySelectorAll('#hero .fi');
 
