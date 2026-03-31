@@ -99,21 +99,18 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. Calculate Total Orders from all users
-const totalOrdersRef = ref(db, 'users');
-onValue(totalOrdersRef, (snapshot) => {
+// 1. GLOBAL TOTAL ORDERS (Sum of all users)
+onValue(ref(db, 'users'), (snapshot) => {
   const users = snapshot.val();
   let totalCount = 0;
   if (users) {
-    Object.values(users).forEach(user => {
-      totalCount += (user.orderCount || 0);
-    });
+    Object.values(users).forEach(u => totalCount += (u.orderCount || 0));
   }
-  const display = document.getElementById('total-orders-display');
-  if(display) display.innerText = totalCount;
+  const totalDisplay = document.getElementById('total-orders-display');
+  if (totalDisplay) totalDisplay.innerText = totalCount;
 });
 
-// 2. Auth State & Individual Data
+// 2. AUTH & USER DATA (Clean & Initialize)
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-nav').style.display = 'none';
@@ -122,6 +119,25 @@ onAuthStateChanged(auth, (user) => {
     onValue(ref(db, 'users/' + user.uid), (snapshot) => {
       const data = snapshot.val();
       if (data) {
+        // --- DATA CLEANUP & INITIALIZATION ---
+        const updates = {};
+        let needsUpdate = false;
+
+        // Auto-delete old bgColor key if it exists
+        if (data.bgColor !== undefined) {
+          updates['bgColor'] = null; 
+          needsUpdate = true;
+        }
+        // Initialize orderCount if missing
+        if (data.orderCount === undefined) {
+          updates['orderCount'] = 0;
+          needsUpdate = true;
+        }
+        // Execute cleanup if needed
+        if (needsUpdate) update(ref(db, 'users/' + user.uid), updates);
+        // --------------------------------------
+
+        // UI Updates
         document.getElementById('display-uid').innerText = user.uid;
         document.getElementById('edit-username').value = data.username || "";
         document.getElementById('user-order-count').innerText = data.orderCount || 0;
@@ -139,7 +155,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// 3. Copy ID Logic
+// 3. COPY ID LOGIC
 document.getElementById('copy-id').onclick = () => {
   const uid = document.getElementById('display-uid').innerText;
   navigator.clipboard.writeText(uid).then(() => {
@@ -149,16 +165,17 @@ document.getElementById('copy-id').onclick = () => {
   });
 };
 
-// 4. Modal & Color UI
+// 4. MODAL & COLOR PICKER UI
 openBtn.onclick = () => modal.style.display = 'flex';
 closeBtn.onclick = () => modal.style.display = 'none';
 colorTrigger.onclick = () => bgPicker.click();
+
 bgPicker.oninput = (e) => {
   pfpCircle.style.backgroundColor = e.target.value;
   colorTrigger.style.borderColor = e.target.value;
 };
 
-// 5. Save Settings
+// 5. SAVE SETTINGS
 document.getElementById('save-settings').onclick = async () => {
   const user = auth.currentUser;
   if (!user) return;
@@ -170,11 +187,10 @@ document.getElementById('save-settings').onclick = async () => {
     await update(ref(db, 'users/' + user.uid), {
       username: newName,
       pfpColor: newColor
-      // orderCount is handled manually by you in Firebase console
     });
-    alert("Settings Saved!");
+    alert("Profile Updated!");
     modal.style.display = 'none';
   } catch (error) {
-    console.error(error);
+    console.error("Save failed:", error);
   }
 };
