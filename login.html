@@ -1,123 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Login | Average Servicer</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Mono:wght@300&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Mono:wght@300&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #fcfcfc;
-      --surface: rgba(255,255,255,0.70);
-      --border: rgba(0,0,0,0.06);
-      --text: #0d0d0d;
+      --bg:     #fcfcfc;
+      --border: rgba(0,0,0,.06);
+      --text:   #0d0d0d;
+      --muted:  #888;
       --accent: #4a7ff5;
     }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      background:var(--bg); color:var(--text);
+      font-family:'DM Mono',monospace; font-weight:300;
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh;
     }
-    .login-card {
-      background: var(--surface);
-      backdrop-filter: blur(15px);
-      border: 1px solid var(--border);
-      padding: 40px;
-      border-radius: 25px;
-      text-align: center;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.04);
-      width: 90%;
-      max-width: 380px;
+    /* subtle ambient blob */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 70% 50% at 75% -5%, rgba(100,160,255,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at -5% 90%, rgba(100,160,255,.04) 0%, transparent 55%);
     }
-    h1 { font-family: 'Syne'; font-size: 1.4rem; margin-bottom: 5px; }
+    .card {
+      position:relative; z-index:1;
+      background:rgba(255,255,255,.72);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      border:1px solid var(--border); border-radius:24px;
+      padding:42px 38px; width:90%; max-width:380px; text-align:center;
+      box-shadow:0 12px 40px rgba(0,0,0,.05);
+    }
+    h1 {
+      font-family:'Syne',sans-serif; font-weight:800;
+      font-size:1.35rem; letter-spacing:-.01em; margin-bottom:6px;
+    }
+    .sub { font-size:.66rem; letter-spacing:.3em; text-transform:uppercase; color:var(--muted); }
+
     .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      font-family: 'DM Mono';
-      font-weight: bold;
-      background: white;
-      color: var(--text);
-      cursor: pointer;
-      border: 1px solid var(--border);
-      transition: 0.3s;
-      margin-top: 20px;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      width:100%; padding:14px; margin-top:28px;
+      background:#fff; color:var(--text);
+      border:1px solid rgba(0,0,0,.09); border-radius:12px;
+      font-family:'DM Mono',monospace; font-size:.75rem; font-weight:300;
+      letter-spacing:.06em; cursor:pointer;
+      transition:background .2s, transform .25s, box-shadow .25s;
     }
-    .google-btn:hover { background: #f9f9f9; transform: translateY(-2px); }
-    .back-link { display: block; margin-top: 20px; font-size: 0.7rem; color: #888; text-decoration: none; text-transform: uppercase; }
-    #status { margin-top: 15px; font-size: 0.75rem; color: var(--accent); display: none; }
+    .google-btn:hover { background:#f7f7f7; transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.06); }
+    .google-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+    #status {
+      margin-top:16px; font-size:.7rem; letter-spacing:.12em;
+      text-transform:uppercase; color:var(--accent); display:none;
+    }
+    .back {
+      display:block; margin-top:22px;
+      font-size:.66rem; letter-spacing:.15em; text-transform:uppercase;
+      color:var(--muted); text-decoration:none; transition:color .2s;
+    }
+    .back:hover { color:var(--text); }
   </style>
 </head>
 <body>
 
-  <div class="login-card">
-    <h1>AVERAGE SERVICER</h1>
-    <p style="font-size: 0.7rem; opacity: 0.5;">// AUTHENTICATION</p>
-    
-    <button class="google-btn" id="googleLogin">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G" width="18">
-      Sign in with Google
-    </button>
+<div class="card">
+  <h1>AVERAGE SERVICER</h1>
+  <p class="sub">// Authentication</p>
 
-    <div id="status">Syncing Data...</div>
+  <button class="google-btn" id="googleLogin">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G" width="18"/>
+    Sign in with Google
+  </button>
 
-    <a href="https://sonika303.github.io/Average-Servicer/" class="back-link">← Back to home</a>
-  </div>
+  <div id="status">Syncing data...</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  <a href="https://sonika303.github.io/Average-Servicer/" class="back">← Back to home</a>
+</div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
-      authDomain: "average-servicer.firebaseapp.com",
-      // ADD YOUR DATABASE URL HERE IF IT WAS IN YOUR SETTINGS
-      databaseURL: "https://average-servicer-default-rtdb.firebaseio.com", 
-      projectId: "average-servicer",
-      storageBucket: "average-servicer.firebasestorage.app",
-      messagingSenderId: "186112502875",
-      appId: "1:186112502875:web:ba22beac9aac70fe9b237e"
-    };
+<script type="module">
+  import { initializeApp }                          from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getDatabase, ref, get, update }          from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const provider = new GoogleAuthProvider();
+  const app = initializeApp({
+    apiKey:            "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
+    authDomain:        "average-servicer.firebaseapp.com",
+    databaseURL:       "https://average-servicer-default-rtdb.firebaseio.com",
+    projectId:         "average-servicer",
+    storageBucket:     "average-servicer.firebasestorage.app",
+    messagingSenderId: "186112502875",
+    appId:             "1:186112502875:web:ba22beac9aac70fe9b237e"
+  });
 
-    document.getElementById('googleLogin').onclick = async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        document.getElementById('status').style.display = 'block';
+  const auth     = getAuth(app);
+  const db       = getDatabase(app);
+  const provider = new GoogleAuthProvider();
+  const btn      = document.getElementById('googleLogin');
+  const status   = document.getElementById('status');
 
-        // REALTIME DATABASE SAVE
-        // This creates a "users" node, then a node with the User's UID
-        await set(ref(db, 'users/' + user.uid), {
+  btn.onclick = async () => {
+    btn.disabled = true;
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user   = result.user;
+      status.style.display = 'block';
+
+      const userRef     = ref(db, 'users/' + user.uid);
+      const snapshot    = await get(userRef);
+      const existsAlready = snapshot.exists();
+
+      if (existsAlready) {
+        // ── Returning user: only refresh mutable login fields, NEVER touch
+        //    orderCount, pfpColor, or any other saved preference ──
+        await update(userRef, {
           username: user.displayName,
-          emailid: user.email
+          emailid:  user.email
+          // intentionally NOT setting orderCount or pfpColor
         });
-
-        setTimeout(() => {
-          window.location.href = "https://sonika303.github.io/Average-Servicer/";
-        }, 1000);
-
-      } catch (error) {
-        console.error("Error code:", error.code);
-        console.error("Error message:", error.message);
-        alert("Login failed. Check browser console for specific error.");
+      } else {
+        // ── Brand-new user: safe to initialise all fields for the first time ──
+        await update(userRef, {
+          username:   user.displayName,
+          emailid:    user.email,
+          orderCount: 0
+          // pfpColor left absent — user picks it later in settings
+        });
       }
-    };
-  </script>
+
+      setTimeout(() => {
+        window.location.href = "https://sonika303.github.io/Average-Servicer/";
+      }, 900);
+
+    } catch (err) {
+      console.error("Login error:", err.code, err.message);
+      alert("Login failed: " + err.message);
+      btn.disabled = false;
+      status.style.display = 'none';
+    }
+  };
+</script>
 </body>
 </html>
