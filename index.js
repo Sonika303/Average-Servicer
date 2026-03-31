@@ -1,12 +1,3 @@
-/* ═══════════════════════════════════════════
-   index.js — Average Servicer
-   Hero fade · Scroll reveal · Nav · Tilt
-   Zero dependencies. ~60 lines.
-   ═══════════════════════════════════════════ */
-
-(function () {
-  'use strict';
-
   /* ── 1. Hero entrance (staggered fade-in) ────────────────── */
   var heroItems = document.querySelectorAll('#hero .fi');
 
@@ -146,4 +137,3 @@
     alert("Settings Saved!");
     modal.style.display = 'none';
   };
-}());
