@@ -85,80 +85,88 @@ bgPicker.oninput = (e) => {
   // This also previews the color on the body immediately
   document.body.style.backgroundColor = e.target.value;
 };   
-  /* ── 6. Firebase & Settings Logic ────────────────────────── */
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+/* ── 6. Firebase & Settings Logic ────────────────────────── */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
-    authDomain: "average-servicer.firebaseapp.com",
-    databaseURL: "https://average-servicer-default-rtdb.firebaseio.com",
-    projectId: "average-servicer",
-    storageBucket: "average-servicer.firebasestorage.app",
-    messagingSenderId: "186112502875",
-    appId: "1:186112502875:web:ba22beac9aac70fe9b237e"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
+  authDomain: "average-servicer.firebaseapp.com",
+  databaseURL: "https://average-servicer-default-rtdb.firebaseio.com",
+  projectId: "average-servicer",
+  storageBucket: "average-servicer.firebasestorage.app",
+  messagingSenderId: "186112502875",
+  appId: "1:186112502875:web:ba22beac9aac70fe9b237e"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-  const modal = document.getElementById('settings-modal');
-  const openBtn = document.getElementById('open-settings');
-  const closeBtn = document.querySelector('.close-modal');
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById('login-nav').style.display = 'none';
-      document.getElementById('user-nav').style.display = 'block';
-      
-// UI Logic for the Color Trigger
+const modal = document.getElementById('settings-modal');
+const openBtn = document.getElementById('open-settings');
+const closeBtn = document.querySelector('.close-modal');
 const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
+// 1. Auth State & Data Loading
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('login-nav').style.display = 'none';
+    document.getElementById('user-nav').style.display = 'block';
+
+    onValue(ref(db, 'users/' + user.uid), (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        document.getElementById('display-uid').innerText = user.uid;
+        document.getElementById('edit-username').value = data.username || "";
+        
+        // Update PFP Initials
+        const name = data.username || "??";
+        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+        pfpCircle.innerText = initials.substring(0, 2);
+
+        // Apply Saved PFP Color
+        if (data.pfpColor) {
+          pfpCircle.style.backgroundColor = data.pfpColor;
+          bgPicker.value = data.pfpColor;
+        }
+      }
+    });
+  }
+}); // <--- This was the missing closing bracket!
+
+// 2. Modal Controls
+openBtn.onclick = () => modal.style.display = 'flex';
+closeBtn.onclick = () => modal.style.display = 'none';
+
+// 3. Color Picker UI Logic
 colorTrigger.onclick = () => bgPicker.click();
 
-// Live Preview: Changes PFP color as you slide the picker
 bgPicker.oninput = (e) => {
   pfpCircle.style.backgroundColor = e.target.value;
   colorTrigger.style.borderColor = e.target.value;
 };
 
-// Updated Save Logic
+// 4. Save Logic
 document.getElementById('save-settings').onclick = async () => {
   const user = auth.currentUser;
+  if (!user) return;
+
   const newName = document.getElementById('edit-username').value;
-  const newColor = document.getElementById('bg-picker').value;
+  const newColor = bgPicker.value;
 
-  // Save to Firebase
-  await update(ref(db, 'users/' + user.uid), {
-    username: newName,
-    pfpColor: newColor 
-  });
-
-  // Final UI Update (PFP ONLY)
-  pfpCircle.style.backgroundColor = newColor;
-  
-  alert("Profile Updated!");
-  modal.style.display = 'none';
-};
-
-  openBtn.onclick = () => modal.style.display = 'flex';
-  closeBtn.onclick = () => modal.style.display = 'none';
-
-  document.getElementById('save-settings').onclick = async () => {
-    const user = auth.currentUser;
-    const newName = document.getElementById('edit-username').value;
-    const newColor = document.getElementById('bg-picker').value;
-
+  try {
     await update(ref(db, 'users/' + user.uid), {
       username: newName,
-      bgColor: newColor
+      pfpColor: newColor
     });
     
-    document.body.style.backgroundColor = newColor;
-    alert("Settings Saved!");
+    alert("Profile Updated!");
     modal.style.display = 'none';
-  };
+  } catch (error) {
+    console.error("Save failed:", error);
+  }
+};
