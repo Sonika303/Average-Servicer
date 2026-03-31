@@ -76,7 +76,7 @@ document.addEventListener('contextmenu', function (e) {
 
 /* ── 6. Firebase & Settings Logic ────────────────────────── */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -100,7 +100,7 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. GLOBAL TOTAL ORDERS (With Scroll-Triggered Animation)
+// 1. GLOBAL TOTAL ORDERS
 let currentDisplayCount = 0;
 let hasAnimated = false; 
 
@@ -113,7 +113,6 @@ onValue(ref(db, 'users'), (snapshot) => {
   
   const totalDisplay = document.getElementById('total-orders-display');
   
-  // This function runs the actual numbers
   const startCounter = () => {
     if (hasAnimated) return;
     hasAnimated = true;
@@ -129,14 +128,14 @@ onValue(ref(db, 'users'), (snapshot) => {
     animateScroll();
   };
 
-  // Trigger counter only when the user scrolls to it
   const observer = new IntersectionObserver((entries) => {
     if(entries[0].isIntersecting) startCounter();
   }, { threshold: 1.0 });
 
   if (totalDisplay) observer.observe(totalDisplay);
 });
-// 2. AUTH & USER DATA (Clean & Initialize)
+
+// 2. AUTH & USER DATA
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-nav').style.display = 'none';
@@ -145,24 +144,19 @@ onAuthStateChanged(auth, (user) => {
     onValue(ref(db, 'users/' + user.uid), (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // --- DATA JANITOR: Cleanup & Initialization ---
         const updates = {};
         let needsUpdate = false;
 
-        // Automatically delete old 'bgColor' key if found
         if (data.bgColor !== undefined) {
           updates['bgColor'] = null; 
           needsUpdate = true;
         }
-        // Ensure every user has an orderCount key
         if (data.orderCount === undefined) {
           updates['orderCount'] = 0;
           needsUpdate = true;
         }
         if (needsUpdate) update(ref(db, 'users/' + user.uid), updates);
-        // ----------------------------------------------
 
-        // UI Updates
         document.getElementById('display-uid').innerText = user.uid;
         document.getElementById('edit-username').value = data.username || "";
         document.getElementById('user-order-count').innerText = data.orderCount || 0;
@@ -178,6 +172,11 @@ onAuthStateChanged(auth, (user) => {
         }
       }
     });
+  } else {
+    // UI Reset if logged out
+    document.getElementById('login-nav').style.display = 'block';
+    document.getElementById('user-nav').style.display = 'none';
+    modal.style.display = 'none';
   }
 });
 
@@ -219,4 +218,13 @@ document.getElementById('save-settings').onclick = async () => {
   } catch (error) {
     console.error("Save failed:", error);
   }
+};
+
+// 6. LOGOUT LOGIC
+document.getElementById('logout-btn').onclick = () => {
+  signOut(auth).then(() => {
+    window.location.reload();
+  }).catch((err) => {
+    console.error("Logout Error:", err);
+  });
 };
