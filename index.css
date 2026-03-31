@@ -97,37 +97,26 @@ body::before {
   font-size: 4rem;
   line-height: 1;
   margin: 0;
-  /* Use a solid color as fallback, then the gradient */
   color: var(--text); 
   background: linear-gradient(to right, #0d0d0d 20%, #4a7ff5 40%, #4a7ff5 60%, #0d0d0d 80%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
-  /* IMPORTANT: Only use transparent fill if background-clip is supported */
   -webkit-text-fill-color: transparent; 
   animation: shine 4s linear infinite;
-  /* Moved pulse to opacity only to prevent layout shifting */
-  transition: opacity 0.3s ease;
+  display: flex;
+  justify-content: center;
 }
 
-/* Ensure the span inherits the transparent fill correctly */
 #total-orders-display {
   display: inline-block;
-  min-width: 1ch; /* Prevents zero-width invisibility */
+  min-width: 1ch;
 }
 
 @keyframes shine { 
+  from { background-position: 0% center; }
   to { background-position: 200% center; } 
 }
-/* span is just a text node — NO transform, NO own animation */
-#total-orders-display { display:inline; }
-
-@keyframes shine { to { background-position:200% center; } }
-@keyframes statPulse {
-  0%,100% { opacity:1; }
-  50%      { opacity:.75; filter:drop-shadow(0 0 10px rgba(74,127,245,.35)); }
-}
-
 /* ── Category headers ── */
 .cat-header { margin:3.8rem 0 1.6rem; }
 .cat-label {
