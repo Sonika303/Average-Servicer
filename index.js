@@ -68,23 +68,11 @@
     });
   });
 
-  /* ── 5. Block right-click context menu ──────────────────── */
-  document.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-  });
-  // Get the elements
-const colorTrigger = document.getElementById('color-trigger');
-const bgPicker = document.getElementById('bg-picker');
+/* ── 5. Block right-click context menu ──────────────────── */
+document.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+});
 
-// 1. Make the button open the color picker
-colorTrigger.onclick = () => bgPicker.click();
-
-// 2. (Optional) Visual feedback: Change the button border when a color is picked
-bgPicker.oninput = (e) => {
-  colorTrigger.style.borderColor = e.target.value;
-  // This also previews the color on the body immediately
-  document.body.style.backgroundColor = e.target.value;
-};   
 /* ── 6. Firebase & Settings Logic ────────────────────────── */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -104,6 +92,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+// DECLARE THESE ONCE HERE
 const modal = document.getElementById('settings-modal');
 const openBtn = document.getElementById('open-settings');
 const closeBtn = document.querySelector('.close-modal');
@@ -123,12 +112,10 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById('display-uid').innerText = user.uid;
         document.getElementById('edit-username').value = data.username || "";
         
-        // Update PFP Initials
         const name = data.username || "??";
         const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
         pfpCircle.innerText = initials.substring(0, 2);
 
-        // Apply Saved PFP Color
         if (data.pfpColor) {
           pfpCircle.style.backgroundColor = data.pfpColor;
           bgPicker.value = data.pfpColor;
@@ -136,7 +123,7 @@ onAuthStateChanged(auth, (user) => {
       }
     });
   }
-}); // <--- This was the missing closing bracket!
+});
 
 // 2. Modal Controls
 openBtn.onclick = () => modal.style.display = 'flex';
