@@ -76,7 +76,7 @@ document.addEventListener('contextmenu', function (e) {
 /* ── 6. Firebase & Settings Logic ────────────────────────── */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, onValue, update, off } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDfT41VGcSPRkYDgflZFwtzQzyH5a3RUIM",
@@ -99,8 +99,7 @@ const colorTrigger = document.getElementById('color-trigger');
 const bgPicker = document.getElementById('bg-picker');
 const pfpCircle = document.getElementById('user-initials');
 
-// 1. GLOBAL TOTAL ORDERS
-let currentDisplayCount = 0;
+// 1. GLOBAL TOTAL ORDERS (3-Second Scaled Animation)
 let hasAnimated = false; 
 
 onValue(ref(db, 'users'), (snapshot) => {
@@ -113,18 +112,29 @@ onValue(ref(db, 'users'), (snapshot) => {
   const totalDisplay = document.getElementById('total-orders-display');
   
   const startCounter = () => {
-    if (hasAnimated) return;
+    if (hasAnimated || targetCount === 0) return;
     hasAnimated = true;
-    const animateScroll = () => {
-      if (currentDisplayCount < targetCount) {
-        currentDisplayCount++;
-        totalDisplay.innerText = currentDisplayCount;
-        setTimeout(animateScroll, 30); 
+
+    const duration = 3000; // 3 Seconds
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease Out Quad formula for smoother finish
+      const easedProgress = progress * (2 - progress);
+      const currentValue = Math.floor(easedProgress * targetCount);
+      
+      totalDisplay.innerText = currentValue;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
       } else {
         totalDisplay.innerText = targetCount;
       }
     };
-    animateScroll();
+    requestAnimationFrame(animate);
   };
 
   const observer = new IntersectionObserver((entries) => {
@@ -134,27 +144,23 @@ onValue(ref(db, 'users'), (snapshot) => {
   if (totalDisplay) observer.observe(totalDisplay);
 });
 
-// 2. AUTH & USER DATA
+// 2. AUTH & USER DATA (With Clean Logout State)
 onAuthStateChanged(auth, (user) => {
+  const userRef = user ? ref(db, 'users/' + user.uid) : null;
+
   if (user) {
     document.getElementById('login-nav').style.display = 'none';
     document.getElementById('user-nav').style.display = 'block';
 
-    onValue(ref(db, 'users/' + user.uid), (snapshot) => {
+    onValue(userRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const updates = {};
         let needsUpdate = false;
 
-        if (data.bgColor !== undefined) {
-          updates['bgColor'] = null; 
-          needsUpdate = true;
-        }
-        if (data.orderCount === undefined) {
-          updates['orderCount'] = 0;
-          needsUpdate = true;
-        }
-        if (needsUpdate) update(ref(db, 'users/' + user.uid), updates);
+        if (data.bgColor !== undefined) { updates['bgColor'] = null; needsUpdate = true; }
+        if (data.orderCount === undefined) { updates['orderCount'] = 0; needsUpdate = true; }
+        if (needsUpdate) update(userRef, updates);
 
         document.getElementById('display-uid').innerText = user.uid;
         document.getElementById('edit-username').value = data.username || "";
@@ -172,16 +178,26 @@ onAuthStateChanged(auth, (user) => {
       }
     });
   } else {
-    // UI Reset if logged out
+    // PREVENT INSTANT WIPE: Reset UI to defaults when logged out
+    if (userRef) off(userRef); // Kill the database listener
+    
     document.getElementById('login-nav').style.display = 'block';
     document.getElementById('user-nav').style.display = 'none';
     modal.style.display = 'none';
+    
+    // Reset individual elements to placeholders
+    document.getElementById('display-uid').innerText = "--------";
+    document.getElementById('edit-username').value = "";
+    document.getElementById('user-order-count').innerText = "0";
+    pfpCircle.innerText = "??";
+    pfpCircle.style.backgroundColor = "var(--accent)";
   }
 });
 
 // 3. COPY ID LOGIC
 document.getElementById('copy-id').onclick = () => {
   const uid = document.getElementById('display-uid').innerText;
+  if(uid.includes('-')) return; // Don't copy placeholder
   navigator.clipboard.writeText(uid).then(() => {
     const feedback = document.getElementById('copy-feedback');
     feedback.style.display = 'inline';
